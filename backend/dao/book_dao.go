@@ -100,6 +100,43 @@ func (dao *BookDAO) GetBookByID(bookID string) (*do.Book, error) {
 	return &book, nil
 }
 
+// 获取所有书籍列表
+func (dao *BookDAO) GetAllBooks() ([]do.Book, error) {
+	query := `
+		SELECT book_id, title, author, description, total_copies, available_copies, can_borrow, created_at
+		FROM books 
+		ORDER BY created_at DESC
+	`
+	
+	executor := dao.getExecutor()
+	rows, err := executor.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var books []do.Book
+	for rows.Next() {
+		var book do.Book
+		err := rows.Scan(
+			&book.BookID,
+			&book.Title,
+			&book.Author,
+			&book.Description,
+			&book.TotalCopies,
+			&book.AvailableCopies,
+			&book.CanBorrow,
+			&book.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		books = append(books, book)
+	}
+
+	return books, nil
+}
+
 // 更新书籍可借阅数量
 func (dao *BookDAO) UpdateBookAvailableCopies(bookID string, availableCopies int) error {
 	query := "UPDATE books SET available_copies = ? WHERE book_id = ?"

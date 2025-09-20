@@ -52,3 +52,16 @@ func (c *BookController) GetBookDetail(ctx *gin.Context) {
 		"data": book,
 	})
 }
+
+// 获取所有书籍列表
+func (c *BookController) GetAllBooks(ctx *gin.Context) {
+	books, err := c.bookService.GetAllBooks()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": books,
+	})
+}

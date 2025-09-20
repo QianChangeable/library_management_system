@@ -60,6 +60,11 @@ func (s *BookService) IncreaseAvailableCopies(bookID string) error {
 	return s.bookDAO.UpdateBookAvailableCopies(bookID, book.AvailableCopies+1)
 }
 
+// 获取所有书籍列表
+func (s *BookService) GetAllBooks() ([]do.Book, error) {
+	return s.bookDAO.GetAllBooks()
+}
+
 // 自定义错误类型
 type BorrowError struct {
 	Message string

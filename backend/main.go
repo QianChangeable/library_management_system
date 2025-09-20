@@ -48,6 +48,7 @@ func main() {
 	{
 		bookGroup.GET("/search", bookController.SearchBooks)
 		bookGroup.GET("/:id", bookController.GetBookDetail)
+		bookGroup.GET("/list", bookController.GetAllBooks)
 	}
 
 	// 借阅相关路由
