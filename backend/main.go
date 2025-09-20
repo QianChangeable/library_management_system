@@ -58,6 +58,7 @@ func main() {
 		borrowGroup.POST("/return", borrowController.ReturnBook)
 		borrowGroup.POST("/pay-fine", borrowController.PayFine)
 		borrowGroup.GET("/record", borrowController.GetBorrowRecord)
+		borrowGroup.GET("/records", borrowController.GetStudentBorrowRecords)
 	}
 
 	// 学生相关路由
@@ -70,7 +71,7 @@ func main() {
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "OK",
+			"status":  "OK",
 			"message": "图书管理系统运行正常",
 		})
 	})

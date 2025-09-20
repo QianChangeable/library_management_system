@@ -123,28 +123,64 @@ class LibraryManager {
     // 加载借阅记录
     async loadBorrowRecords() {
         try {
-            // 这里需要根据实际API调整，暂时显示加载中
             const recordsContainer = document.getElementById('borrowRecords');
             recordsContainer.innerHTML = '<p class="loading">加载借阅记录中...</p>';
 
-            // 模拟借阅记录数据（实际应该从API获取）
-            setTimeout(() => {
-                recordsContainer.innerHTML = `
-                    <div class="record-item">
-                        <div class="record-info">
-                            <p><strong>书籍编号:</strong> B001</p>
-                            <p><strong>书名:</strong> 示例图书</p>
-                            <p><strong>借阅日期:</strong> 2024-01-15</p>
-                            <p><strong>预计归还:</strong> 2024-03-15</p>
-                            <p><strong>状态:</strong> 借阅中</p>
-                        </div>
-                    </div>
-                `;
-            }, 1000);
+            const response = await fetch(`http://localhost:8085/borrow/records?stu_id=${this.currentUser.stu_id}`, {
+                headers: authManager.getAuthHeaders(),
+            });
+
+            if (!authManager.checkApiResponse(response)) return;
+
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                this.displayBorrowRecords(data.data);
+            } else {
+                recordsContainer.innerHTML = '<p class="result-message">暂无借阅记录</p>';
+            }
         } catch (error) {
             console.error('加载借阅记录失败:', error);
-            document.getElementById('borrowRecords').innerHTML = '<p>加载借阅记录失败</p>';
+            document.getElementById('borrowRecords').innerHTML = '<p class="result-message error">加载借阅记录失败</p>';
         }
+    }
+
+    // 显示借阅记录
+    displayBorrowRecords(records) {
+        const recordsContainer = document.getElementById('borrowRecords');
+        
+        const recordsHTML = records.map(record => {
+            const borrowDate = new Date(record.borrow_date).toLocaleDateString();
+            const dueDate = new Date(record.due_date).toLocaleDateString();
+            const isOverdue = record.is_overdue;
+            const fineAmount = record.fine_amount || 0;
+            const bookTitle = record.book_title || '未知图书';
+            const bookAuthor = record.book_author || '未知作者';
+            
+            return `
+                <div class="record-item ${isOverdue ? 'overdue' : ''}">
+                    <div class="record-info">
+                        <p><strong>书名:</strong> ${bookTitle}</p>
+                        <p><strong>作者:</strong> ${bookAuthor}</p>
+                        <p><strong>书籍编号:</strong> ${record.book_id}</p>
+                        <p><strong>借阅日期:</strong> ${borrowDate}</p>
+                        <p><strong>预计归还:</strong> ${dueDate}</p>
+                        <p><strong>状态:</strong> 
+                            <span class="status ${isOverdue ? 'unavailable' : 'available'}">
+                                ${isOverdue ? '已逾期' : '借阅中'}
+                            </span>
+                        </p>
+                        ${fineAmount > 0 ? `<p><strong>罚款金额:</strong> ¥${fineAmount.toFixed(2)}</p>` : ''}
+                    </div>
+                    <div class="record-actions">
+                        <button class="return-btn" onclick="libraryManager.returnBook('${record.book_id}')">
+                            还书
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        recordsContainer.innerHTML = recordsHTML;
     }
 
 
@@ -369,6 +405,48 @@ class LibraryManager {
         this.currentBookId = null;
     }
 
+    // 还书功能
+    async returnBook(bookId) {
+        if (!confirm('确认要归还这本书吗？')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8085/borrow/return', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authManager.getAuthHeaders(),
+                },
+                body: JSON.stringify({
+                    stu_id: this.currentUser.stu_id,
+                    book_id: bookId
+                })
+            });
+
+            if (!authManager.checkApiResponse(response)) return;
+
+            const data = await response.json();
+            
+            // 显示还书结果
+            if (data.fine_amount && data.fine_amount > 0) {
+                this.showMessage('profilePanel', `${data.message}，罚款金额：¥${data.fine_amount.toFixed(2)}`, 'warning');
+            } else {
+                this.showMessage('profilePanel', data.message || '还书成功', 'success');
+            }
+            
+            // 刷新借阅记录
+            this.loadBorrowRecords();
+            
+            // 刷新用户信息（可能影响借阅状态）
+            this.loadUserProfile();
+            
+        } catch (error) {
+            console.error('还书失败:', error);
+            this.showMessage('profilePanel', '还书失败，请稍后重试', 'error');
+        }
+    }
+
     // 显示消息
     showMessage(panelId, message, type = 'info') {
         const panel = document.getElementById(panelId);
@@ -419,3 +497,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('图书馆管理系统初始化完成');
 });
+

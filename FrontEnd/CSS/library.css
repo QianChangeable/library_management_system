@@ -218,6 +218,10 @@
     padding: 15px;
     border-radius: 8px;
     border-left: 4px solid #007bff;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
 }
 
 .record-item.overdue {
@@ -229,6 +233,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 10px;
+    flex: 1;
 }
 
 .record-info p {
@@ -239,6 +244,35 @@
 
 .record-info strong {
     color: #151A2E;
+}
+
+.record-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.return-btn {
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.3s ease;
+    white-space: nowrap;
+}
+
+.return-btn:hover {
+    background: #218838;
+}
+
+.return-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
 }
 
 /* 结果消息样式 */
@@ -569,6 +603,20 @@
     .book-info,
     .record-info {
         grid-template-columns: 1fr;
+    }
+
+    .record-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .record-actions {
+        align-items: stretch;
+        margin-top: 10px;
+    }
+
+    .return-btn {
+        width: 100%;
     }
 
     .book-list {

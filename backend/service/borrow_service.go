@@ -134,6 +134,16 @@ func (s *BorrowService) GetBorrowRecord(stuID, bookID string) (*do.BorrowRecord,
 	return s.borrowDAO.GetBorrowRecord(stuID, bookID)
 }
 
+// 获取学生的所有借阅记录
+func (s *BorrowService) GetStudentBorrowRecords(stuID string) ([]do.BorrowRecord, error) {
+	return s.borrowDAO.GetStudentBorrowRecords(stuID)
+}
+
+// 获取学生的借阅记录（包含图书信息）
+func (s *BorrowService) GetStudentBorrowRecordsWithBookInfo(stuID string) ([]map[string]interface{}, error) {
+	return s.borrowDAO.GetStudentBorrowRecordsWithBookInfo(stuID)
+}
+
 // 处理罚款支付
 func (s *BorrowService) PayFine(stuID string) error {
 	// 开始事务

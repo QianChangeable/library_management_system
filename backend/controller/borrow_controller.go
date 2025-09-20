@@ -109,3 +109,23 @@ func (c *BorrowController) GetBorrowRecord(ctx *gin.Context) {
 		"data": record,
 	})
 }
+
+// 获取学生的所有借阅记录
+func (c *BorrowController) GetStudentBorrowRecords(ctx *gin.Context) {
+	stuID := ctx.Query("stu_id")
+
+	if stuID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "学号不能为空"})
+		return
+	}
+
+	records, err := c.borrowService.GetStudentBorrowRecordsWithBookInfo(stuID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": records,
+	})
+}
