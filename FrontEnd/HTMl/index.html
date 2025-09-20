@@ -17,7 +17,7 @@
         <h1>WELCOME</h1>
 
         <div class="input-wrap in-1">
-            <input type="text" placeholder="Your stuID" spellcheck="false" required>
+            <input type="text" id="stuID" placeholder="Your stuID" spellcheck="false" required>
 
             <i class="fa-solid fa-user"></i>
             <!-- Your Email右边的人物标 -->
@@ -25,7 +25,7 @@
 
 
         <div class="input-wrap in-2">
-            <input type="password" placeholder="Your password" spellcheck="false" required>
+            <input type="password" id="password" placeholder="Your password" spellcheck="false" required>
             <!-- type=password 可以隐藏密码的显示 -->
             <i class="fa-solid fa-lock"></i>
             <!-- Your password右边的锁标 -->
@@ -34,13 +34,16 @@
         <div class="rem">
             <!-- 记住此用户 -->
             <p>
-                <input type="checkbox">
+                <input type="checkbox" id="rememberMe">
                 Remember me?
             </p>
         </div>
 
-        <button>Login</button>
+        <button id="loginBtn">Login</button>
+        <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
     </section>
+
+    <script src="../JS/login.js"></script>
 </body>
 
 </html>
