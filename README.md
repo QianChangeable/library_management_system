@@ -129,8 +129,81 @@ go run main.go
    - `GET /borrow/record?stu_id=学号&book_id=图书编号`
 
 ### 健康检查
-
 - `GET /health` - 服务健康状态检查
+
+### 学生登录
+- **URL**: `POST /student/login`
+- **请求体**:
+```json
+{
+  "stu_id": "string (required)",
+  "password": "string (required)"
+}
+```
+- **响应**:
+```json
+{
+  "message": "登录成功",
+  "data": {
+    "stu_id": "学号",
+    "name": "姓名",
+    "trust": "信用值",
+    "can_borrow": "是否可以借书",
+    "borrow_info": "借阅状态信息"
+  }
+}
+```
+
+### 获取学生信息
+- **URL**: `GET /student/info?stu_id={学号}`
+- **参数**: `stu_id` (查询参数)
+- **响应**:
+```json
+{
+  "data": {
+    "stu_id": "学号",
+    "name": "姓名",
+    "trust": "信用值",
+    "can_borrow": "是否可以借书",
+    "created_at": "创建时间"
+  }
+}
+```
+
+## 错误响应
+
+### 登录失败
+```json
+{
+  "error": "学号或密码错误"
+}
+```
+
+### 参数错误
+```json
+{
+  "error": "请求参数错误: {具体错误信息}"
+}
+```
+
+### 学生不存在
+```json
+{
+  "error": "学生不存在"
+}
+```
+
+## 使用示例
+
+```bash
+# 登录
+curl -X POST http://localhost:8085/student/login \
+  -H "Content-Type: application/json" \
+  -d '{"stu_id": "20230001", "password": "password123"}'
+
+# 获取信息
+curl -X GET "http://localhost:8085/student/info?stu_id=20230001"
+
 
 ## 业务规则
 

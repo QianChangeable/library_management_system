@@ -21,10 +21,12 @@ func main() {
 	// 初始化服务
 	bookService := service.NewBookService(db)
 	borrowService := service.NewBorrowService(db)
+	studentService := service.NewStudentService(db)
 
 	// 初始化控制器
 	bookController := controller.NewBookController(bookService)
 	borrowController := controller.NewBorrowController(borrowService)
+	studentController := controller.NewStudentController(studentService)
 
 	// 创建Gin路由
 	r := gin.Default()
@@ -43,6 +45,13 @@ func main() {
 		borrowGroup.POST("/return", borrowController.ReturnBook)
 		borrowGroup.POST("/pay-fine", borrowController.PayFine)
 		borrowGroup.GET("/record", borrowController.GetBorrowRecord)
+	}
+
+	// 学生相关路由
+	studentGroup := r.Group("/student")
+	{
+		studentGroup.POST("/login", studentController.Login)
+		studentGroup.GET("/info", studentController.GetStudentInfo)
 	}
 
 	// 健康检查
