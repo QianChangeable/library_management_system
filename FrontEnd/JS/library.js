@@ -196,17 +196,25 @@ class LibraryManager {
                 headers: authManager.getAuthHeaders(),
             });
 
+            // 检查响应状态
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || '加载失败';
+                bookList.innerHTML = `<p class="result-message error">加载图书失败：${errorMessage}</p>`;
+                return;
+            }
+
             if (!authManager.checkApiResponse(response)) return;
 
             const data = await response.json();
-            if (data.data) {
+            if (data.data && data.data.length > 0) {
                 this.displayBooks(data.data);
             } else {
                 bookList.innerHTML = '<p class="result-message">暂无图书数据</p>';
             }
         } catch (error) {
             console.error('加载图书失败:', error);
-            bookList.innerHTML = '<p class="result-message error">加载图书失败，请稍后重试</p>';
+            bookList.innerHTML = '<p class="result-message error">加载图书失败：网络错误，请检查网络连接后重试</p>';
         }
     }
 
@@ -226,17 +234,25 @@ class LibraryManager {
                 headers: authManager.getAuthHeaders(),
             });
 
+            // 检查响应状态
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || '搜索失败';
+                bookList.innerHTML = `<p class="result-message error">搜索失败：${errorMessage}</p>`;
+                return;
+            }
+
             if (!authManager.checkApiResponse(response)) return;
 
             const data = await response.json();
             if (data.data && data.data.length > 0) {
                 this.displayBooks(data.data);
             } else {
-                bookList.innerHTML = '<p class="result-message">未找到相关图书</p>';
+                bookList.innerHTML = '<p class="result-message">未找到相关图书，请尝试其他关键词</p>';
             }
         } catch (error) {
             console.error('搜索图书失败:', error);
-            bookList.innerHTML = '<p class="result-message error">搜索失败，请稍后重试</p>';
+            bookList.innerHTML = '<p class="result-message error">搜索失败：网络错误，请检查网络连接后重试</p>';
         }
     }
 
@@ -278,6 +294,14 @@ class LibraryManager {
                 headers: authManager.getAuthHeaders(),
             });
 
+            // 检查响应状态
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || '获取详情失败';
+                this.showMessage('bookPanel', `获取图书详情失败：${errorMessage}`, 'error');
+                return;
+            }
+
             if (!authManager.checkApiResponse(response)) return;
 
             const data = await response.json();
@@ -285,10 +309,12 @@ class LibraryManager {
                 this.displayBookDetail(data.data);
                 this.currentBookId = bookId;
                 this.showModal();
+            } else {
+                this.showMessage('bookPanel', '图书详情不存在', 'error');
             }
         } catch (error) {
             console.error('获取图书详情失败:', error);
-            this.showMessage('bookPanel', '获取图书详情失败', 'error');
+            this.showMessage('bookPanel', '获取图书详情失败：网络错误，请检查网络连接后重试', 'error');
         }
     }
 
@@ -374,6 +400,27 @@ class LibraryManager {
                 })
             });
 
+            // 检查响应状态
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || '借书失败';
+                
+                // 先关闭借书窗口
+                this.closeModal();
+                
+                // 处理特定的错误情况
+                if (errorMessage.includes('学生借阅权限已被禁用')) {
+                    this.showMessage('bookPanel', '借阅失败：您的借阅权限已被禁用，可能由于逾期未还书或未支付罚款。请先归还逾期图书或支付罚款后重试。', 'error');
+                } else if (errorMessage.includes('书籍不可借阅或已全部借出')) {
+                    this.showMessage('bookPanel', '借阅失败：该图书暂不可借阅或已全部借出，请选择其他图书。', 'error');
+                } else if (errorMessage.includes('已达到最大借阅数量')) {
+                    this.showMessage('bookPanel', '借阅失败：您已达到最大借阅数量限制，请先归还部分图书。', 'error');
+                } else {
+                    this.showMessage('bookPanel', `借阅失败：${errorMessage}`, 'error');
+                }
+                return;
+            }
+
             if (!authManager.checkApiResponse(response)) return;
 
             const data = await response.json();
@@ -387,7 +434,9 @@ class LibraryManager {
             this.loadUserProfile();
         } catch (error) {
             console.error('借书失败:', error);
-            this.showMessage('bookPanel', '借书失败，请稍后重试', 'error');
+            // 先关闭借书窗口
+            this.closeModal();
+            this.showMessage('bookPanel', '借书失败：网络错误，请检查网络连接后重试', 'error');
         } finally {
             borrowBtn.disabled = false;
             borrowBtn.textContent = originalText;
@@ -424,13 +473,29 @@ class LibraryManager {
                 })
             });
 
+            // 检查响应状态
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.error || '还书失败';
+                
+                // 处理特定的错误情况
+                if (errorMessage.includes('借阅记录不存在')) {
+                    this.showMessage('profilePanel', '还书失败：未找到该借阅记录，可能已经归还或记录有误', 'error');
+                } else if (errorMessage.includes('图书不存在')) {
+                    this.showMessage('profilePanel', '还书失败：图书信息不存在，请联系管理员', 'error');
+                } else {
+                    this.showMessage('profilePanel', `还书失败：${errorMessage}`, 'error');
+                }
+                return;
+            }
+
             if (!authManager.checkApiResponse(response)) return;
 
             const data = await response.json();
             
             // 显示还书结果
             if (data.fine_amount && data.fine_amount > 0) {
-                this.showMessage('profilePanel', `${data.message}，罚款金额：¥${data.fine_amount.toFixed(2)}`, 'warning');
+                this.showMessage('profilePanel', `${data.message}，罚款金额：¥${data.fine_amount.toFixed(2)}。请注意：逾期罚款可能影响您的借阅权限。`, 'warning');
             } else {
                 this.showMessage('profilePanel', data.message || '还书成功', 'success');
             }
@@ -443,7 +508,7 @@ class LibraryManager {
             
         } catch (error) {
             console.error('还书失败:', error);
-            this.showMessage('profilePanel', '还书失败，请稍后重试', 'error');
+            this.showMessage('profilePanel', '还书失败：网络错误，请检查网络连接后重试', 'error');
         }
     }
 
