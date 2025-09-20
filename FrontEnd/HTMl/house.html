@@ -8,6 +8,7 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="../CSS/style2.css">
+    <link rel="stylesheet" href="../CSS/library.css">
 </head>
 
 <body>
@@ -66,13 +67,99 @@
                         </li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="material-symbols-rounded">logout</span>
+                        <span class="nav-label">Sign Out</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-title">Sign Out</a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </aside>
 
 
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+        <div class="content-header">
+            <h1>图书馆管理系统</h1>
+            <div class="user-info">
+                <span id="userName">用户</span>
+            </div>
+        </div>
+
+        <!-- 个人信息面板 -->
+        <div id="profilePanel" class="content-panel active">
+            <h2>个人信息</h2>
+            <div class="profile-info">
+                <div class="info-item">
+                    <label>学号:</label>
+                    <span id="stuId"></span>
+                </div>
+                <div class="info-item">
+                    <label>姓名:</label>
+                    <span id="stuName"></span>
+                </div>
+                <div class="info-item">
+                    <label>信任度:</label>
+                    <span id="trustLevel"></span>
+                </div>
+                <div class="info-item">
+                    <label>借阅状态:</label>
+                    <span id="borrowStatus"></span>
+                </div>
+            </div>
+            
+            <h3>当前借阅记录</h3>
+            <div id="borrowRecords" class="records-list">
+                <p>加载中...</p>
+            </div>
+        </div>
+
+        <!-- 找书面板 -->
+        <div id="searchBookPanel" class="content-panel">
+            <h2>查找书籍</h2>
+            <div class="search-form">
+                <input type="text" id="searchKeyword" placeholder="输入书名或作者">
+                <button id="searchBtn">搜索</button>
+            </div>
+            <div id="searchResults" class="search-results">
+                <p>请输入关键词搜索书籍</p>
+            </div>
+        </div>
+
+        <!-- 借书面板 -->
+        <div id="borrowBookPanel" class="content-panel">
+            <h2>借阅书籍</h2>
+            <div class="borrow-form">
+                <input type="text" id="borrowBookId" placeholder="输入书籍编号">
+                <button id="borrowBtn">借阅</button>
+            </div>
+            <div id="borrowResult" class="result-message">
+                <p>请输入书籍编号进行借阅</p>
+            </div>
+        </div>
+
+        <!-- 还书面板 -->
+        <div id="returnBookPanel" class="content-panel">
+            <h2>归还书籍</h2>
+            <div class="return-form">
+                <input type="text" id="returnBookId" placeholder="输入书籍编号">
+                <button id="returnBtn">归还</button>
+            </div>
+            <div id="returnResult" class="result-message">
+                <p>请输入书籍编号进行归还</p>
+            </div>
+        </div>
+    </main>
+
     <script src="../JS/script.js"></script>
     <script src="../JS/auth.js"></script>
+    <script src="../JS/library.js"></script>
 </body>
 
 </html>
