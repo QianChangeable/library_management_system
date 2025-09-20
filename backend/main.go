@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// 初始化数据库连接
-	db, err := dao.NewSQLDB("root:password@tcp(localhost:3306)/library_management?charset=utf8mb4&parseTime=True&loc=Local")
+	db, err := dao.NewSQLDB("root:12345678@tcp(localhost:13306)/bookTest?charset=utf8mb4&parseTime=True&loc=Local")
 	if err != nil {
 		log.Fatalf("数据库连接失败: %v", err)
 	}
