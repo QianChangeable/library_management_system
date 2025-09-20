@@ -8,8 +8,12 @@ class LibraryManager {
     // 初始化
     init() {
         this.bindEvents();
-        this.loadUserProfile();
-        this.updateUserName();
+        // 强制加载个人信息（包含借阅记录）
+        this.loadUserProfile().catch(err => {
+            console.error('初始化数据加载失败:', err);
+            document.getElementById('borrowRecords').innerHTML = '<p>加载失败，请刷新页面</p>';
+        });
+        this.loadBorrowRecords();
     }
 
     // 绑定事件
@@ -55,13 +59,6 @@ class LibraryManager {
         document.getElementById('returnBookId').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.returnBook();
         });
-    }
-
-    // 更新用户名显示
-    updateUserName() {
-        if (this.currentUser) {
-            document.getElementById('userName').textContent = this.currentUser.name || this.currentUser.stu_id;
-        }
     }
 
     // 处理导航
@@ -316,15 +313,12 @@ class LibraryManager {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
-    if (window.location.pathname.includes('house.html')) {
-        // 检查登录状态
-        if (!authManager.checkLoginStatus()) {
-            return;
-        }
-        
-        // 初始化图书馆管理器
-        window.libraryManager = new LibraryManager();
-        
-        console.log('图书馆管理系统初始化完成');
+    if (!authManager.checkLoginStatus()) {
+        return;
     }
+
+    // 初始化图书馆管理器
+    window.libraryManager = new LibraryManager();
+
+    console.log('图书馆管理系统初始化完成');
 });
