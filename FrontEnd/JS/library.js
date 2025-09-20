@@ -32,6 +32,43 @@ class LibraryManager {
             authManager.logout();
         });
 
+        // 图书搜索事件
+        document.getElementById('searchBooksBtn').addEventListener('click', () => {
+            this.searchBooks();
+        });
+
+        // 显示所有图书事件
+        document.getElementById('showAllBooksBtn').addEventListener('click', () => {
+            this.loadAllBooks();
+        });
+
+        // 搜索框回车事件
+        document.getElementById('bookSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.searchBooks();
+            }
+        });
+
+        // 模态框关闭事件
+        document.getElementById('closeModal').addEventListener('click', () => {
+            this.closeModal();
+        });
+
+        document.getElementById('cancelBorrowBtn').addEventListener('click', () => {
+            this.closeModal();
+        });
+
+        // 借书事件
+        document.getElementById('borrowBookBtn').addEventListener('click', () => {
+            this.borrowBook();
+        });
+
+        // 点击模态框外部关闭
+        document.getElementById('bookDetailModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('bookDetailModal')) {
+                this.closeModal();
+            }
+        });
     }
 
     // 处理导航
@@ -43,6 +80,10 @@ class LibraryManager {
             case '个人信息':
                 document.getElementById('profilePanel').classList.add('active');
                 this.loadUserProfile();
+                break;
+            case '图书':
+                document.getElementById('bookPanel').classList.add('active');
+                this.loadAllBooks();
                 break;
         }
     }
@@ -108,6 +149,243 @@ class LibraryManager {
 
 
     
+
+    // 加载所有图书
+    async loadAllBooks() {
+        const bookList = document.getElementById('bookList');
+        bookList.innerHTML = '<p class="loading">加载图书中...</p>';
+
+        try {
+            const response = await fetch('http://localhost:8085/books/list', {
+                headers: authManager.getAuthHeaders(),
+            });
+
+            if (!authManager.checkApiResponse(response)) return;
+
+            const data = await response.json();
+            if (data.data) {
+                this.displayBooks(data.data);
+            } else {
+                bookList.innerHTML = '<p class="result-message">暂无图书数据</p>';
+            }
+        } catch (error) {
+            console.error('加载图书失败:', error);
+            bookList.innerHTML = '<p class="result-message error">加载图书失败，请稍后重试</p>';
+        }
+    }
+
+    // 搜索图书
+    async searchBooks() {
+        const keyword = document.getElementById('bookSearchInput').value.trim();
+        if (!keyword) {
+            this.showMessage('bookPanel', '请输入搜索关键词', 'warning');
+            return;
+        }
+
+        const bookList = document.getElementById('bookList');
+        bookList.innerHTML = '<p class="loading">搜索中...</p>';
+
+        try {
+            const response = await fetch(`http://localhost:8085/books/search?keyword=${encodeURIComponent(keyword)}`, {
+                headers: authManager.getAuthHeaders(),
+            });
+
+            if (!authManager.checkApiResponse(response)) return;
+
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                this.displayBooks(data.data);
+            } else {
+                bookList.innerHTML = '<p class="result-message">未找到相关图书</p>';
+            }
+        } catch (error) {
+            console.error('搜索图书失败:', error);
+            bookList.innerHTML = '<p class="result-message error">搜索失败，请稍后重试</p>';
+        }
+    }
+
+    // 显示图书列表
+    displayBooks(books) {
+        const bookList = document.getElementById('bookList');
+        
+        if (!books || books.length === 0) {
+            bookList.innerHTML = '<p class="result-message">暂无图书</p>';
+            return;
+        }
+
+        const booksHTML = books.map(book => `
+            <div class="book-card" data-book-id="${book.book_id}">
+                <h4>${book.title}</h4>
+                <div class="author">作者: ${book.author}</div>
+                <div class="description">${book.description || '暂无描述'}</div>
+                <div class="book-meta">
+                    <div class="copies-info">
+                        库存: ${book.available_copies}/${book.total_copies}
+                    </div>
+                    <div class="status ${book.available_copies > 0 && book.can_borrow ? 'available' : 'unavailable'}">
+                        ${book.available_copies > 0 && book.can_borrow ? '可借阅' : '不可借阅'}
+                    </div>
+                </div>
+                <button class="view-detail-btn" onclick="libraryManager.showBookDetail('${book.book_id}')">
+                    查看详情
+                </button>
+            </div>
+        `).join('');
+
+        bookList.innerHTML = booksHTML;
+    }
+
+    // 显示图书详情
+    async showBookDetail(bookId) {
+        try {
+            const response = await fetch(`http://localhost:8085/books/${bookId}`, {
+                headers: authManager.getAuthHeaders(),
+            });
+
+            if (!authManager.checkApiResponse(response)) return;
+
+            const data = await response.json();
+            if (data.data) {
+                this.displayBookDetail(data.data);
+                this.currentBookId = bookId;
+                this.showModal();
+            }
+        } catch (error) {
+            console.error('获取图书详情失败:', error);
+            this.showMessage('bookPanel', '获取图书详情失败', 'error');
+        }
+    }
+
+    // 显示图书详情内容
+    displayBookDetail(book) {
+        document.getElementById('modalBookTitle').textContent = book.title;
+        
+        const detailContent = document.getElementById('bookDetailContent');
+        detailContent.innerHTML = `
+            <div class="book-detail">
+                <div class="detail-row">
+                    <div class="detail-label">图书编号:</div>
+                    <div class="detail-value">${book.book_id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">书名:</div>
+                    <div class="detail-value">${book.title}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">作者:</div>
+                    <div class="detail-value">${book.author}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">总数量:</div>
+                    <div class="detail-value">${book.total_copies}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">可借数量:</div>
+                    <div class="detail-value">${book.available_copies}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">借阅状态:</div>
+                    <div class="detail-value">
+                        <span class="status ${book.available_copies > 0 && book.can_borrow ? 'available' : 'unavailable'}">
+                            ${book.available_copies > 0 && book.can_borrow ? '可借阅' : '不可借阅'}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">添加时间:</div>
+                    <div class="detail-value">${new Date(book.created_at).toLocaleDateString()}</div>
+                </div>
+                <div class="detail-row description">
+                    <div class="detail-label">图书描述:</div>
+                    <div class="detail-value">${book.description || '暂无描述'}</div>
+                </div>
+            </div>
+        `;
+
+        // 设置借书按钮状态
+        const borrowBtn = document.getElementById('borrowBookBtn');
+        if (book.available_copies > 0 && book.can_borrow) {
+            borrowBtn.disabled = false;
+            borrowBtn.textContent = '借阅此书';
+        } else {
+            borrowBtn.disabled = true;
+            borrowBtn.textContent = '暂不可借阅';
+        }
+    }
+
+    // 借书功能
+    async borrowBook() {
+        if (!this.currentBookId) {
+            this.showMessage('bookPanel', '请选择要借阅的图书', 'warning');
+            return;
+        }
+
+        const borrowBtn = document.getElementById('borrowBookBtn');
+        const originalText = borrowBtn.textContent;
+        borrowBtn.disabled = true;
+        borrowBtn.textContent = '借阅中...';
+
+        try {
+            const response = await fetch('http://localhost:8085/borrow/borrow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authManager.getAuthHeaders(),
+                },
+                body: JSON.stringify({
+                    stu_id: this.currentUser.stu_id,
+                    book_id: this.currentBookId
+                })
+            });
+
+            if (!authManager.checkApiResponse(response)) return;
+
+            const data = await response.json();
+            this.showMessage('bookPanel', data.message || '借书成功', 'success');
+            this.closeModal();
+            
+            // 刷新图书列表
+            this.loadAllBooks();
+            
+            // 刷新用户信息（可能影响借阅状态）
+            this.loadUserProfile();
+        } catch (error) {
+            console.error('借书失败:', error);
+            this.showMessage('bookPanel', '借书失败，请稍后重试', 'error');
+        } finally {
+            borrowBtn.disabled = false;
+            borrowBtn.textContent = originalText;
+        }
+    }
+
+    // 显示模态框
+    showModal() {
+        document.getElementById('bookDetailModal').classList.add('show');
+    }
+
+    // 关闭模态框
+    closeModal() {
+        document.getElementById('bookDetailModal').classList.remove('show');
+        this.currentBookId = null;
+    }
+
+    // 显示消息
+    showMessage(panelId, message, type = 'info') {
+        const panel = document.getElementById(panelId);
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `result-message ${type}`;
+        messageDiv.textContent = message;
+        
+        // 插入到面板顶部
+        panel.insertBefore(messageDiv, panel.firstChild);
+        
+        // 3秒后自动移除
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 3000);
+    }
 
     // API请求封装
     async apiRequest(url, options = {}) {

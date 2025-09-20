@@ -96,6 +96,42 @@
                 <p>加载中...</p>
             </div>
         </div>
+
+        <!-- 图书管理面板 -->
+        <div id="bookPanel" class="content-panel">
+            <h2>图书管理</h2>
+            
+            <!-- 搜索表单 -->
+            <div class="search-form">
+                <input type="text" id="bookSearchInput" placeholder="输入书名、作者或关键词搜索图书...">
+                <button id="searchBooksBtn">搜索</button>
+                <button id="showAllBooksBtn">显示所有图书</button>
+            </div>
+
+            <!-- 图书列表 -->
+            <div id="bookList" class="book-list">
+                <p class="loading">加载图书中...</p>
+            </div>
+
+            <!-- 图书详情模态框 -->
+            <div id="bookDetailModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalBookTitle">图书详情</h3>
+                        <span class="close" id="closeModal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="bookDetailContent">
+                            <!-- 图书详情内容将在这里动态加载 -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="borrowBookBtn" class="borrow-btn">借阅此书</button>
+                        <button id="cancelBorrowBtn" class="cancel-btn">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script src="../JS/script.js"></script>

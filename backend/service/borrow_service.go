@@ -57,6 +57,7 @@ func (s *BorrowService) BorrowBook(stuID, bookID string) error {
 		BookID:     bookID,
 		BorrowDate: time.Now(),
 		DueDate:    time.Now().AddDate(0, 2, 0), // 两个月后
+		ReturnDate: nil,
 		IsOverdue:  false,
 		FineAmount: 0,
 	}
